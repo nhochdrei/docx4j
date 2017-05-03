@@ -96,7 +96,10 @@ public class RunFontSelectorJapaneseTest {
 			
 			if (PhysicalFonts.get("MS Mincho")==null
 					&& System.getProperty("os.name").startsWith("Windows")
-					&& System.getProperty("os.version").equals("6.2")) {
+					&& (System.getProperty("os.version").equals("6.2") ||   // Windows 8   | 2012
+					    System.getProperty("os.version").equals("6.3") ||   // Windows 8.1 | 2012 R2
+					    System.getProperty("os.version").equals("6.4") ||   // [Windows 10 | 2016] (RTM Versions)
+					    System.getProperty("os.version").equals("10.0"))) { // Windows 10  | 2016 (Release)
 				/* On Windows 10, MS Mincho, the expected result, is not installed by default. 
 				 * See further http://answers.microsoft.com/en-us/windows/forum/windows_10-start/some-fonts-are-missing-after-upgrade/95839dfa-0df2-4bc0-875a-fd6b57e61fe4?auth=1 
 				 * */ 
