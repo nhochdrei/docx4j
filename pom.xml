@@ -7,13 +7,13 @@
     <artifactId>oss-parent</artifactId>
     <version>7</version>
   </parent>
-  
+
 	<groupId>org.docx4j</groupId>
 	<artifactId>docx4j</artifactId>
 	<version>3.3.3</version>
 	<packaging>jar</packaging>
 	<name>docx4j</name>
-	
+
 	<description>
 		docx4j is a library which helps you to work with the Office Open
 		XML file format as used in docx
@@ -33,20 +33,21 @@
     </scm>
 	<inceptionYear>2007</inceptionYear>
 
-	  <properties>
-	    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <!-- github server corresponds to entry in ~/.m2/settings.xml -->
-    <github.global.server>github</github.global.server>
-	  </properties>	
-	  
-	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- github server corresponds to entry in ~/.m2/settings.xml -->
+		<github.global.server>github</github.global.server>
+		<javadoc.additionalparams></javadoc.additionalparams>
+	</properties>
+
+
 	<build>
 		<sourceDirectory>src/main/java</sourceDirectory>
 		<testSourceDirectory>src/test/java</testSourceDirectory>
 		<outputDirectory>bin</outputDirectory><!--  for a clean jar, be sure to avoid mixing mvn and eclipse output -->
 		<testOutputDirectory>bin-testOutput</testOutputDirectory>
-			<!-- NB this confuses Eclipse, in that if you modify test src, it doesn't recompile it to this dir. 
-			     You need to run mvn test from the command line to recompile, then Eclipse can run 
+			<!-- NB this confuses Eclipse, in that if you modify test src, it doesn't recompile it to this dir.
+			     You need to run mvn test from the command line to recompile, then Eclipse can run
 			     the new code.  -->
 		<plugins>
 			<plugin>
@@ -152,7 +153,7 @@
 					<maxmemory>512m</maxmemory>
 					<!-- 18 MB without the exclusion; still 15MB with -->
 					<!-- <excludePackageNames>org.plutext.jaxb.svg11:org.plutext.jaxb.xslfo</excludePackageNames> -->
-			        <additionalparam>-Xdoclint:none</additionalparam> <!-- for Java 8 -->
+			        <additionalparam>-Xdoclint:none ${javadoc.additionalparams}</additionalparam> <!-- for Java 8 -->
 				 </configuration>
 				<executions>
 					<execution>
@@ -192,7 +193,7 @@
 					</echos>
 				</configuration>
 			</plugin>
-<!-- 			
+<!--
 		<plugin>
             <groupId>org.basepom.maven</groupId>
             <artifactId>duplicate-finder-maven-plugin</artifactId>
@@ -220,23 +221,23 @@
                 <useResultFile>true</useResultFile>
                 <resultFileMinClasspathCount>2</resultFileMinClasspathCount>
                 <resultFile>${project.build.directory}/duplicate-finder-result.xml</resultFile>
-                
+
 				<includeBootClasspath>true</includeBootClasspath>
-                <bootClasspathProperty>sun.boot.class.path</bootClasspathProperty>                
+                <bootClasspathProperty>sun.boot.class.path</bootClasspathProperty>
 
             </configuration>
         </plugin>
  -->
- 
+
  			<!--  mvn versions:display-dependency-updates -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>versions-maven-plugin</artifactId>
 				<version>2.2</version>
-			</plugin> 
-			
+			</plugin>
+
 		<!--  mvn package
-			<plugin> 
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>2.4.3</version>
@@ -250,15 +251,15 @@
 							<artifactSet>
 								<excludes>
 									<exclude>junit:junit</exclude>
-								</excludes>								
+								</excludes>
 							</artifactSet>
 			              <shadedArtifactAttached>true</shadedArtifactAttached>
 			              <shadedClassifierName>shaded</shadedClassifierName>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>	
-			 -->		
+			</plugin>
+			 -->
 		</plugins>
     	<pluginManagement>
 			<plugins>
@@ -333,7 +334,7 @@
 					<include>**/*.xslt</include>
 					<include>**/*.xml</include>
 				</includes>
-			</resource>			<!-- 
+			</resource>			<!--
 			<resource>
 				<directory>src/main/resources</directory>
 				<includes>
@@ -377,8 +378,8 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	
-	
+
+
 	<dependencies>
 
 		<dependency>
@@ -387,14 +388,14 @@
 			<version>1.0.2</version>
 		</dependency>
 
-	<!-- To use MOXy, uncomment the following 2 dependencies. 
+	<!-- To use MOXy, uncomment the following 2 dependencies.
 		Dependency version 2.4.1 had some issues,
 		see http://www.docx4java.org/forums/docx-java-f6/moxy-t1242.html for further
-		details.  	
-		
+		details.
+
 		org.eclipse.persistence.internal.oxm.XMLBinaryDataHelper.initializeDataTypes(XMLBinaryDataHelper.java:75)
 		needs javax.mail
-		
+
 		v2.6+ org/eclipse/persistence is class file version 51.0  ie Java 7,
 		so stick with 2.5.2 (since all our other deps still support Java 6)
  		<dependency>
@@ -414,7 +415,7 @@
 		</dependency>
 		-->
 
-		
+
 		<!--  events -->
 		<dependency>
 		    <groupId>net.engio</groupId>
@@ -422,26 +423,26 @@
 		    <version>1.2.4.2</version>
 		</dependency>
 
-		<!--  From 3.0, docx4j uses slf4j --> 
+		<!--  From 3.0, docx4j uses slf4j -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.21</version>
 		</dependency>
 
-		<!--  instead of FOP's commons-logging -->		
+		<!--  instead of FOP's commons-logging -->
 		<dependency>
 		    <groupId>org.slf4j</groupId>
 		    <artifactId>jcl-over-slf4j</artifactId>
 		    <version>1.7.21</version>
-		</dependency>		
+		</dependency>
 
 		<!--  .. default to log4j implementation, just like docx4j 2.8.1 and earlier.  -->
 		 <dependency>
 		  <groupId>org.slf4j</groupId>
 		  <artifactId>slf4j-log4j12</artifactId>
 		  <version>1.7.21</version>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
@@ -465,24 +466,24 @@
 					</exclusion>
 				</exclusions>
 		</dependency>
-		
- 		 
+
+
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.4</version>  <!-- ns prefix mapper uses org.apache.commons.lang3.text.StrTokenizer -->
 		</dependency>
-		 
-		 
+
+
 		 <!--  supports org.apache.commons.lang.NotImplementedException -->
-		 <!-- 
+		 <!--
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
-			<version>2.4</version> 
+			<version>2.4</version>
 		</dependency>
 		 -->
-		
+
 		<dependency>
 			<!--  required for ole introspection -->
 			<groupId>commons-codec</groupId>
@@ -495,7 +496,7 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.4</version> <!--  2.2 works -->
 		</dependency>
-		
+
 		<!-- you can comment out if you don't want
 			 to use Plutext's commercial PDF Converter.	
 		 -->
@@ -504,19 +505,19 @@
 			<artifactId>httpclient</artifactId>
 			<version>4.5.2</version>
 		</dependency>
-						
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 			<version>2.7.3</version>
 		</dependency>
-		
+
 		<dependency>
 		  <groupId>com.fasterxml.jackson.core</groupId>
 		  <artifactId>jackson-databind</artifactId>
 			<version>2.7.3</version>
-		</dependency>		
-		
+		</dependency>
+
 
 	<dependency>
 		<groupId>org.apache.xmlgraphics</groupId>
@@ -526,10 +527,10 @@
 			<exclusion>
 				<groupId>commons-logging</groupId>
 				<artifactId>commons-logging</artifactId>
-			</exclusion>		
+			</exclusion>
 		</exclusions>
 	</dependency>
-		
+
 
 
 	<!-- these two are to correct issues in fop dependency -->
@@ -599,21 +600,21 @@
 		    <artifactId>stringtemplate</artifactId>
 		    <version>3.2.1</version>
 		</dependency>
-		
+
 		<!--  since 3.1.1 -->
 		<dependency>
 		    <groupId>com.google.guava</groupId>
 		    <artifactId>guava</artifactId>
 		    <version>19.0</version>
-		</dependency>	
-		
+		</dependency>
+
 		<!--  for anon functionality; since 3.3.1 -->
 		<dependency>
 		    <groupId>com.thedeanda</groupId>
 		    <artifactId>lorem</artifactId>
 		    <version>2.0</version>
-		</dependency>		
-		
+		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -638,11 +639,11 @@
 			mvn deploy:deploy-file -f wagon-svn-pom.xml -Dfile=dist/docx4j.jar -DpomFile=pom.xml  -Dpackaging=jar -DrepositoryId=docx4j -Durl=svn:http://dev.plutext.org/svn/docx4j/trunk/docx4j/m2
 
 		-->
-		
+
 
 	</dependencies>
 
-<!-- 
+<!--
 <distributionManagement>
     <repository>
         <id>internal.repo</id>
@@ -674,27 +675,27 @@
 				</plugins>
 			</build>
 		</profile>
-		
 
-		<!-- Deploy a snapshot to GitHub  
-		
+
+		<!-- Deploy a snapshot to GitHub
+
 			 See http://stackoverflow.com/questions/14013644/hosting-a-maven-repository-on-github
-			 
+
 			 To do this:
 			 0. uncomment distribution management above
 			 1. comment out parent element (top of pom), since this is what makes deploy push to https://oss.sonatype.org
 			 2. comment out maven-javadoc-plugin, since its not worth bothering with that large upload
-			 3. execute 
-			  
+			 3. execute
+
 			       mvn clean deploy  -Pgithub-mvn-repo
-		
-		 -->		
+
+		 -->
 		<profile>
 			<id>github-mvn-repo</id>
 			<build>
-			
+
 				<plugins>
-				
+
 				    <plugin>
 				        <artifactId>maven-deploy-plugin</artifactId>
 				        <version>2.8.1</version>
@@ -702,7 +703,7 @@
 				            <altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
 				        </configuration>
 				    </plugin>
-				
+
 			        <plugin>
 			            <groupId>com.github.github</groupId>
 			            <artifactId>site-maven-plugin</artifactId>
@@ -727,11 +728,11 @@
 			                <phase>deploy</phase>
 			              </execution>
 			            </executions>
-			        </plugin>			
+			        </plugin>
 				</plugins>
 			</build>
 		</profile>
-		
+
 
    		<!--  comment this out, until the Windows path issues below are fixed in m2eclipse
    	<profile>
@@ -769,6 +770,16 @@
    		</dependencies>
    	</profile>
    				-->
+		<!-- TODO: Since JDK 121, but great maven developers never thought of allowing activations like [1.8.0_121,)... -->
+		<profile>
+			<id>javadoc-jdkgeq121-fix</id>
+			<activation>
+				<jdk>1.8.0_131</jdk> <!-- Using 131, as it's the latest JDK. If you're using an older version, consider -Ping stuff manually -->
+			</activation>
+			<properties>
+				<javadoc.additionalparams>--allow-script-in-comments</javadoc.additionalparams>
+			</properties>
+		</profile>
 
    </profiles>
 
@@ -789,7 +800,7 @@
    					broken (mvn 2.0.9) even though java.home is supposed to point to JRE_HOME:
 
    				-->
-   				
+
 <!-- Uncomment to deploy to GitHub.  MUST Comment out for real release
 <distributionManagement>
     <repository>
@@ -797,6 +808,6 @@
         <name>Temporary Staging Repository</name>
         <url>file://${project.build.directory}/mvn-repo</url>
     </repository>
-</distributionManagement>   				
+</distributionManagement>
 -->
 </project>
