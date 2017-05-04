@@ -80,20 +80,9 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
 				<configuration>
-					<!-- The objective is to generate a jar which is compatible with Java
-						1.5, whilst at the same time allowing @Override annotations in the source
-						code on methods which merely implement an interface (Java 6 allows this,
-						but 1.5 gives an error). When I played around with this, I found that both
-						maven and ant would happily compile to target 1.5 with the pesky @Override
-						annotations present (irrespective of whether source was set to 1.5 or 1.6).
-						You are not allowed source=1.6, target=1.5; this results in: Failure executing
-						javac, but could not parse the error javac: source release 1.6 requires target
-						release 1.6 So we need source=1.5, target=1.5 The downside is that m2eclipse
-						mirrors this in Eclipse's compiler settings, and Eclipse then complains about
-						the @Override annotations :-( So you must manually change the Eclipse compiler
-						setting back to 1.6. -->
-					<source>1.5</source>
-					<target>1.5</target>
+					<!-- Stop using old, unsupported Java versions already. -->
+					<source>1.8</source>
+					<target>1.8</target>
 
 					<verbose>false</verbose>
 					<!-- maxmemory>512m</maxmemory On Linux, use: MAVEN_OPTS="-Xmx512m" mvn install -->
