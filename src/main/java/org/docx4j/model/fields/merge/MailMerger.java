@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.transform.TransformerException;
@@ -667,6 +668,8 @@ public class MailMerger {
 	 * or <w:instrText xml:space="preserve"> MERGEFIELD  Kundenstrasse</w:instrText>
 	 */
 	protected static String getDatafieldNameFromInstr(String instr) {
+		if (instr == null)
+			return null;
 		
 
 //		System.out.println("BEFORE " +XmlUtils.marshaltoString(
@@ -695,40 +698,19 @@ public class MailMerger {
 	}
 	
 	protected static String extractInstr(List<Object> instructions) {
-		// For MERGEFIELD, expect the list to contain a simple string
-		
-		if (instructions.size()!=1) {
-			log.error("TODO MERGEFIELD field contained complex instruction");
-			/* eg
-			 * 
-			 *    <w:r>
-			        <w:instrText xml:space="preserve"> MERGEFIELD  lasauv</w:instrText>
-			      </w:r>
-			      <w:r>
-			        <w:instrText xml:space="preserve">egarde  \* MERGEFORMAT </w:instrText>
-			      </w:r>
-			      
-				for (Object i : instructions) {
-					i = XmlUtils.unwrap(i);
-					if (i instanceof Text) {
-						log.error( ((Text)i).getValue());
-					} else {
-						log.error(XmlUtils.marshaltoString(i, true, true) );
-					}
-				}
-			 */
-			return null;
-		}
-		
-		Object o = XmlUtils.unwrap(instructions.get(0));
-		if (o instanceof Text) {
-			return ((Text)o).getValue();
-		} else {
-            if(log.isErrorEnabled()) {
-                log.error("TODO: extract field name from " + o.getClass().getName());
-                log.error(XmlUtils.marshaltoString(instructions.get(0), true, true));
-            }
-			return null;
+			String content = instructions.stream()
+			                             .map(XmlUtils::unwrap)
+			                             .filter(o -> o instanceof Text)
+			                             .map(o -> (Text)o)
+			                             .map(Text::getValue)
+			                             .collect(Collectors.joining());
+			if (content != null && !content.isEmpty()){
+				if (instructions.size() > 1)
+					log.warn("TODO MERGEFIELD field contained complex instruction. Attempting to recreate original content: " + content);
+				return content;
+			} else {
+				log.error("Couldn't get mergefield instruction", instructions.toArray());
+				return null;
 		}
 	}
 	
