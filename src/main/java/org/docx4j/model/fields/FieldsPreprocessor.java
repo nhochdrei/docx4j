@@ -25,33 +25,34 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 /**
  * This class puts fields into a "canonical" representation
  * (see FieldRef for description).
- * 
+ *
  * It does this in 2 steps:
  * - step 1: use XSLT to convert simple fields into complex ones
  * - step 2: put all the instructions into a single run
- * 
+ *
  * Currently the canonicalisation is done at the paragraph level,
  * so it is not suitable for fields (such as TOC) which extend across paragraphs.
  * TOC will need to be regenerated (using Word) if touched by canonicalisation.
- * 
+ *
  * @author jharrop
  *
  */
 public class FieldsPreprocessor {
-	
-	private static Logger log = LoggerFactory.getLogger(FieldsPreprocessor.class);		
 
-    private final static QName _RInstrText_QNAME = new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main", 
+	private static Logger log = LoggerFactory.getLogger(FieldsPreprocessor.class);
+
+    private final static QName _RInstrText_QNAME = new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main",
     		"instrText");
-    private final static QName _PHyperlink_QNAME = new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main", 
+    private final static QName _PHyperlink_QNAME = new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main",
     		"hyperlink");
-    
-	
-	static Templates xslt;			
+
+
+	static Templates xslt;
 	static {
 		try {
 			Source xsltSource = new StreamSource(
@@ -63,25 +64,25 @@ public class FieldsPreprocessor {
 		} catch (TransformerConfigurationException e) {
 			e.printStackTrace();
 		}
-		
+
 	}
-	
+
 	private FieldsPreprocessor(List<FieldRef> fieldRefs) {
 		this.fieldRefs = fieldRefs;
 	}
 
 	/**
-	 * Convert any w:fldSimple in this part to complex field. 
+	 * Convert any w:fldSimple in this part to complex field.
 	 * @param part
 	 * @throws Docx4JException
 	 */
 	public static void complexifyFields(JaxbXmlPart part) throws Docx4JException {
-		
+
 		org.w3c.dom.Document doc = XmlUtils.marshaltoW3CDomDocument(
-				part.getJaxbElement() ); 	
-		
+				part.getJaxbElement() );
+
 //		XPathsPart xPathsPart = null;
-				
+
 		JAXBContext jc = Context.jc;
 		try {
 			// Use constructor which takes Unmarshaller, rather than JAXBContext,
@@ -89,25 +90,25 @@ public class FieldsPreprocessor {
 			Unmarshaller u = jc.createUnmarshaller();
 			u.setEventHandler(new org.docx4j.jaxb.JaxbValidationEventHandler());
 			javax.xml.bind.util.JAXBResult result = new javax.xml.bind.util.JAXBResult(u );
-								
+
 			org.docx4j.XmlUtils.transform(doc, xslt, null, result);
-			
+
 			part.setJaxbElement(result);
 		} catch (Exception e) {
-			throw new Docx4JException("Problems transforming fields", e);			
+			throw new Docx4JException("Problems transforming fields", e);
 		}
-				
+
 	}
-	
-	
+
+
 	/**
 	 * Convert the field(s) in the input P into a predictable
 	 * format, and add a FieldRef object to the list for each
-	 * top level field encountered.  
-	 * 
-	 * WARNING: this method should not be used where a field 
+	 * top level field encountered.
+	 *
+	 * WARNING: this method should not be used where a field
 	 * in the P extends into a subsequent P.
-	 * 
+	 *
 	 * @param p
 	 * @param fieldRefs
 	 * @return the modified P
@@ -133,20 +134,20 @@ public class FieldsPreprocessor {
 		 * Note that the content between begin and separate could be more complex
 		 * including nested fields.
 		 **/
-		
-		
+
+
 		FieldsPreprocessor fp = new FieldsPreprocessor(fieldRefs);
 		return fp.canonicaliseInstance(p);
 	}
-	
+
 	private P canonicaliseInstance(P p) {
 
 		P newP = Context.getWmlObjectFactory().createP();
 		newP.setPPr(p.getPPr());
-		
+
 		newR = Context.getWmlObjectFactory().createR();
 //		fieldRPr = null;
-		
+
 		stack = new LinkedList<FieldRef>();
 		if(log.isDebugEnabled()) {
             log.debug(XmlUtils.marshaltoString(p));
@@ -157,37 +158,37 @@ public class FieldsPreprocessor {
 
 		return newP;
 	}
-	
+
 	/**
 	 * A list of FieldRef objects representing outermost fields
 	 * only.
 	 */
 	private List<FieldRef> fieldRefs;
-	
-	
+
+
 	private LinkedList<FieldRef> stack;
 	private FieldRef currentField=null;
-	
+
 	private R newR;
-	
+
 	private void handleContent(List<Object> objects, ContentAccessor attachmentPoint) {
 		// handles case where the run(s) containing the field are inside a P, or inside a P.Hyperlink 
 		// (eg a PAGEREF in a table of contents).
-		
+
 		for (Object o : objects ) {
 
 			// Handling for hyperlink (can occur in field result, and might contain another
 			// nested field).  Since at present the field processing here is for
 			// MERGEFIELD and DOCPROPERTY fields, this is currently just handled by else below.
-			
+
 			//	if ( o instanceof P.Hyperlink
 			//			|| ((o instanceof JAXBElement
 			//					&& ((JAXBElement)o).getName().equals(_PHyperlink_QNAME)) )	) {
 			//	
-			
-			
+
+
 			if ( o instanceof R ) {
-				
+
 				R existingRun = (R)o;
 				handleRun(existingRun, attachmentPoint);
 
@@ -199,30 +200,30 @@ public class FieldsPreprocessor {
 				// assume others would be ok as well.
 			} else {
 				// its not something we're interested in
-				
+
 				log.debug("Retaining" + XmlUtils.unwrap(o).getClass().getName());
 
 				attachmentPoint.getContent().add(o);
 
 				// prepare new run
 				newR = Context.getWmlObjectFactory().createR();
-				
+
 			}
 
 //			if (newR.getContent().size() > 0 && !attachmentPoint.getContent().contains(newR)) {
 //				attachmentPoint.getContent().add(newR);
 //			}
-			
+
 		}
-		
+
 	}
-	
+
 	private boolean fieldIsTopLevel() {
 		return stack.size()==1;
 	}
-	
+
 	private boolean inParentResult() {
-		
+
 		FieldRef thisField = stack.pop();
 		try {
 			FieldRef parentField = stack.pop();
@@ -237,27 +238,27 @@ public class FieldsPreprocessor {
 			stack.push(thisField);
 			return false;
 		}
-		
+
 	}
-	
+
 	/**
 	 * Its preserved, if it is locked.
-	 * 
+	 *
 	 * If it isn't locked, it is preserved unless its a MERGEFIELD or a DOCPROPERTY field.
-	 * 
+	 *
 	 * @param fieldRef
 	 * @return
 	 */
 	private boolean preserveResult(FieldRef fieldRef) {
-		
+
 		if (fieldRef.isLock()) return true;
-		
+
 		if (fieldRef.isNestedField())
-			return true;
-		
+			return false;
+
 		String fldName = fieldRef.getFldName();
 		if (fldName==null) return true;
-		
+
 		if (fldName.equals("MERGEFIELD")
 				|| fldName.equals("DOCPROPERTY")) {
 			return false;
@@ -266,7 +267,7 @@ public class FieldsPreprocessor {
 	}
 
 	private boolean preserveParentResult() {
-		
+
 		FieldRef thisField = stack.pop();
 		FieldRef parentField = stack.pop();
 		boolean preserveParentResult = preserveResult(parentField);
@@ -275,9 +276,9 @@ public class FieldsPreprocessor {
 		stack.push(thisField);
 		return preserveParentResult;
 	}
-	
+
 	private void handleRun(R existingRun, ContentAccessor newAttachPoint) {
-		
+
 		// note that the newR object persists between invocations of this method,
 		// so you have to be careful to actually add it to the docx 
 		// before re-creating it
@@ -285,51 +286,51 @@ public class FieldsPreprocessor {
         if(log.isDebugEnabled()) {
             log.debug("\nInput run: \n " + XmlUtils.marshaltoString(existingRun, true, true));
         }
-		
+
 		for (Object o2 : existingRun.getContent() ) {
-			
+
 			newR.setRPr(existingRun.getRPr());
 
 			if (isCharType(o2, STFldCharType.BEGIN)) {
-				
+
 				log.debug("\n\n begin.. ");
 
 				// Setup a FieldRef object 
-				currentField = new FieldRef((FldChar)XmlUtils.unwrap(o2));							
-				currentField.setParent(newAttachPoint);							
+				currentField = new FieldRef((FldChar)XmlUtils.unwrap(o2));
+				currentField.setParent(newAttachPoint);
 				currentField.setBeginRun(newR); // may as well do this
-				
+
 				stack.push(currentField);
-				
+
 				if (inParentResult()) {
-					
+
 					if (preserveParentResult()) {
 						newR.getContent().add(o2);
 					} else {
 						log.debug(".. but in result, so don't add to run");
 					}
-					
+
 				} else {
-					
-					if ( fieldIsTopLevel() ) { 
-					
+
+					if ( fieldIsTopLevel() ) {
+
 						newR = Context.getWmlObjectFactory().createR();
-						newR.getContent().add(o2);					
-						
+						newR.getContent().add(o2);
+
 						currentField.setBeginRun(newR); // IMPORTANT, so we can delete it when we perform mail merge
-						
-						fieldRefs.add(currentField);					
+
+						fieldRefs.add(currentField);
 					} else {
 						newR.getContent().add(o2);
-						
+
 						stack.peek().getInstructions().add(currentField);
 					}
 				}
-				
+
 			} else if (isCharType(o2, STFldCharType.SEPARATE)) {
-				
+
 				currentField.setSeenSeparate(true);
-				
+
 				if (inParentResult()) {
 
 					if (preserveParentResult()) {
@@ -339,7 +340,7 @@ public class FieldsPreprocessor {
 					}
 
 				} else {
-				
+
 					newR.getContent().add(o2);
 					if (!newAttachPoint.getContent().contains(newR)) {
 						newAttachPoint.getContent().add(newR);
@@ -347,24 +348,24 @@ public class FieldsPreprocessor {
                             log.debug("-- attaching -->" + XmlUtils.marshaltoString(newR, true, true));
                         }
 					}
-					
+
 					if ( fieldIsTopLevel() ) {
 						// Top level field separator
-						
+
 						// Create result slot
 						newR = Context.getWmlObjectFactory().createR();
-						currentField.setResultsSlot(newR); 
+						currentField.setResultsSlot(newR);
 					}
 				}
-					
+
 			} else if (isCharType(o2, STFldCharType.END)) {
-				
+
 				log.debug("\n\n .. end ");
-				
+
 				if (inParentResult()) {
 
 					if (preserveParentResult()) {
-						
+
 						newR.getContent().add(o2);
 
 						if (currentField.getFldName().equals("FORMTEXT")) {
@@ -412,40 +413,40 @@ public class FieldsPreprocessor {
                                     log.debug("-- attaching -->" + XmlUtils.marshaltoString(newR, true, true));
                                 }
 							}
-							newR = Context.getWmlObjectFactory().createR();						
-						}						
+							newR = Context.getWmlObjectFactory().createR();
+						}
 					} else {
 						log.debug(".. but in result, so don't add to run");
 					}
 
 				} else {  // still in END processing
 
-					if ( fieldIsTopLevel() ) {
-					
+					if (fieldIsTopLevel() || (currentField.isNestedField() && stack.peek().equals(currentField))) {
+
 						if (!currentField.haveSeenSeparate()) {
 							// Word 2010 can produce a docx where:
 							//  <w:r>
 							//    <w:fldChar w:fldCharType="separate"/>
 							//  </w:r>
 							// is missing (valid per spec).
-							
+
 							// For top level fields only, we add this
 							log.debug(".. ADDING SEP ..  ");
-	
-	//						R separateR = Context.getWmlObjectFactory().createR();							
+
+	//						R separateR = Context.getWmlObjectFactory().createR();
 							FldChar fldChar = Context.getWmlObjectFactory().createFldChar();
 							fldChar.setFldCharType(STFldCharType.SEPARATE);
 							newR.getContent().add(fldChar);
-													
+
 							if (!newAttachPoint.getContent().contains(newR)) {
 								newAttachPoint.getContent().add(newR);
                                 if(log.isDebugEnabled()) {
                                     log.debug("-- attaching -->" + XmlUtils.marshaltoString(newR, true, true));
                                 }
 							}
-							
-						}					
-						
+
+						}
+
 						// set up results slot - only for top-level fields
 						newR = currentField.getResultsSlot(); // MERGEFORMAT processing below may have set this already
 						if (newR==null) {
@@ -458,32 +459,39 @@ public class FieldsPreprocessor {
                                 log.debug("-- attaching -->" + XmlUtils.marshaltoString(newR, true, true));
                             }
 						}
-						
-						
+
+
 						// create a run specifically for end char
 						newR = Context.getWmlObjectFactory().createR();
 						newAttachPoint.getContent().add(newR);
 						newR.getContent().add(o2);
 						currentField.setEndRun(newR);
-						
+
 						//for whatever follows the field
 						newR = Context.getWmlObjectFactory().createR();
-						
-					} else {
-						newR.getContent().add(o2);	
-						
 
+						if (currentField.isNestedField()) {
+							currentField.getInstructions().removeIf(i -> Objects.equals(i, currentField)); // Remove self-references
+
+							FieldRef head = stack.pop();
+							stack.peek().getInstructions().add(currentField);
+							stack.push(head);
+						}
+					} else {
+						newR.getContent().add(o2);
 					}
-					
+
 				}
-				
+
+				FieldRef prev = stack.peek();
+
 				stack.pop();
 				currentField = stack.peek();
-				
+
 			} else if (currentField==null) {
 					// run content before or after the field
 					// - preserve this content
-					
+
 					newR.getContent().add(o2);
 
 					if (!newAttachPoint.getContent().contains(newR)) {
@@ -492,21 +500,21 @@ public class FieldsPreprocessor {
                             log.debug("-- attaching -->" + XmlUtils.marshaltoString(newR, true, true));
                         }
 					}
-				
-					newR = Context.getWmlObjectFactory().createR();						
-				
+
+					newR = Context.getWmlObjectFactory().createR();
+
 			} else if ( !currentField.haveSeenSeparate() ) {
-				
+
 				// Handles problems with empty w:instrText elements within complex field "begin" section
 				Object o = XmlUtils.unwrap(o2);
 				if (o instanceof Text && ((Text) o).getValue().trim().isEmpty()) {
 					log.debug("Empty w:instrText found. Ignore it!");
 					continue;
 				}
-				
-				
+
+
 //				log.debug("Processing " +((JAXBElement<Text>)o2).getValue().getValue() );
-				
+
 				currentField.getInstructions().add(o2);
 				if (inParentResult()) {
 
@@ -516,27 +524,27 @@ public class FieldsPreprocessor {
 						log.debug(".. but in result, so don't add to run");
 					}
 
-				} else {				
+				} else {
 					newR.getContent().add(o2);
 				}
 
 			} else if (preserveResult(currentField)) {
 				// ie locked, or not MERGEFIELD, or DOCPROPERTY
 				log.debug("preserveResult-> adding");
-				newR.getContent().add(o2);		
-				
+				newR.getContent().add(o2);
+
 				if (currentField.getResultsSlot()==null) {
 					currentField.setResultsSlot(newR);  // no harm in doing this - same as in SEPARATE processing?
 				} else if (currentField.getResultsSlot()!=newR) {
 					log.warn("Multiple runs in results slot?");
 				}
-				
+
 			} else {
 				// result content .. can ignore unless it has \* MERGEFORMAT
-				
+
 				// if \* MERGEFORMAT, attach the rPr of first run in the result
 				if (o2 instanceof R
-						&& currentField.isMergeFormat() 
+						&& currentField.isMergeFormat()
 						&& currentField.getResultsSlot()==null) {
 
 					R resultR = Context.getWmlObjectFactory().createR();
@@ -544,21 +552,21 @@ public class FieldsPreprocessor {
 					resultR.setRPr(((R)o2).getRPr()); // could be null, but that's ok
 					log.debug("MERGEFORMAT Set rPr");
 				}
-				
-				
-				
+
+
+
 				// TODO: a TOC field usually has a PAGEREF wrapped in a hyperlink in its
 				// result part.  We should either keep the entire result, or empty it.
 				// only do this if the field has no nested field; we need a way to look ahead
 				// to see whether a nested field is coming up)
-				
+
 				// we only want a single run between SEPARATOR and END,
 				// and we added that in the SEPARATE stuff above
                 if(log.isDebugEnabled()) {
                     log.debug("IGNORING " + XmlUtils.marshaltoString(o2, true, true));
                 }
-				
-			} 
+
+			}
 
 			// Doesn't solve the problem of Word failing to display some spaces.
 //			if ( o2 instanceof Text
@@ -567,18 +575,18 @@ public class FieldsPreprocessor {
 //				Text t = (Text)XmlUtils.unwrap(o2);
 //				t.setSpace("preserve");
 //			}
-			
+
 			if (newR.getContent().size() > 0 && !newAttachPoint.getContent().contains(newR)) {
 				newAttachPoint.getContent().add(newR);
 			}
-			
+
 		} // end for (Object o2 : existingRun.getContent() )
-		
+
 	}
-		
+
 	    private final static QName _RT_QNAME = new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main", "t");
-		
-	
+
+
 //	public static boolean containsCharType(Object o, STFldCharType charType) {
 //		
 //		if (o instanceof R) {
@@ -593,19 +601,19 @@ public class FieldsPreprocessor {
 //	}	
 
 	public static boolean isCharType(Object o2, STFldCharType charType) {
-		
+
 		o2 = XmlUtils.unwrap(o2);
-		
+
 		if (o2 instanceof org.docx4j.wml.FldChar) {
 			FldChar fldChar = (FldChar)o2;
 			if (fldChar.getFldCharType().equals(charType) ) {
-								
+
 				return true;
 			} else {
-				log.debug(fldChar.getFldCharType().toString());				
+				log.debug(fldChar.getFldCharType().toString());
 			}
 		}
 		return false;
-	}	
-	
+	}
+
 }
