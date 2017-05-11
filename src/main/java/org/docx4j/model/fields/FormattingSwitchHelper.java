@@ -887,6 +887,9 @@ public class FormattingSwitchHelper {
 	}
 	
 	private static String formatDate(FldSimpleModel model, String format, Date date, String lang) {
+		if (date == null)
+			return null;
+
 		DateFormat dateFormat = null;
 		if ((format != null) && (format.length() > 0)) {
 			SimpleDateFormat simpleDateFormat = getSimpleDateFormat(lang);
